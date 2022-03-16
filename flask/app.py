@@ -1,12 +1,41 @@
 from asyncio.base_tasks import _task_get_stack
-from flask import Flask, render_template,request,flash,redirect,url_for,session
+from flask import Flask, render_template,request,flash,redirect,url_for,session,send_file
 from datetime import datetime
 import sqlite3
+import qrcode
+from io import BytesIO
+import os
+
+
 
 
 app = Flask(__name__)
 app.secret_key="123"
 
+def generate_qr_code(data, id):
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+    print("Generating QR Code")
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    print("1")
+    # app.config['UPLOAD_FOLDER'] = 'static/qr_codes'
+    # print("2")
+    # path = os.path.join(app.config['UPLOAD_FOLDER'], "owner"+str(id) + '.png')
+    # print(path)
+    # print("3")
+    # img.save("owner"+str(id) + '.png')
+    return img
+
+
+
+    
 # Database
 con = sqlite3.connect("database.db")
 # Owner
@@ -74,6 +103,16 @@ def owner():
             cur.execute("insert into owner(name,address,phone,email)values(?,?,?,?)",(task_name,task_address,task_phone,task_email))
 
             con.commit()
+          
+            qr_data = task_name + " " + task_address + " " + task_phone + " " + task_email
+            print("hellojk")
+            img = generate_qr_code(qr_data, cur.lastrowid)
+            byte_io = BytesIO()
+            img.save(byte_io, 'PNG')
+            byte_io.seek(0)
+
+            return send_file(byte_io, mimetype='image/png')
+
             print("success")
             flash("Record Added  Successfully","success")
 
@@ -81,7 +120,7 @@ def owner():
             print("error occured")
             flash("Error in Insert Operation","danger")
         finally:
-            return redirect(url_for("index"))
+            # return redirect(url_for("index"))
             con.close()
 
     else:
@@ -118,7 +157,12 @@ def hospital():
 
 @app.route('/owner_info', methods=['POST', 'GET'])
 def owner_info():
-    return render_template('owner_info.html')
+    con=sqlite3.connect("database.db")
+    cur=con.cursor()
+    cur.execute("select * from owner")
+    rows = cur.fetchall(); 
+
+    return render_template('owner_info.html', Info=rows)
 
 if __name__ == "__main__":
     app.run(debug=True)
