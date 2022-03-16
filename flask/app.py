@@ -1,42 +1,20 @@
 from asyncio.base_tasks import _task_get_stack
-from flask import Flask, render_template, url_for, request, redirect
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import text
+from flask import Flask, render_template,request,flash,redirect,url_for,session
 from datetime import datetime
+import sqlite3
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-db = SQLAlchemy(app)
+app.secret_key="123"
 
-class Citizen(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200),nullable=False)
-    address = db.Column(db.String(200),nullable=False)
-    city = db.Column(db.String(200),nullable=False)
-    phone = db.Column(db.String(200),nullable=False)
-    email = db.Column(db.String(200),nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+# Database
+con = sqlite3.connect("database.db")
+# Owner
+con.execute("create table if not exists owner(id integer primary key,name text,address text,phone text,email text)")
+# Citizen
+con.execute("create table if not exists citizen(id integer primary key,name text,address text,phone text,email text, city text)")
+con.close()
 
-class Owner(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200),nullable=False)
-    address = db.Column(db.String(200),nullable=False)
-    phone = db.Column(db.String(200),nullable=False)
-    email = db.Column(db.String(200),nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
-
-class Agent(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(200),nullable=False)
-    password = db.Column(db.String(200),nullable=False)
-
-class Hospital(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(200),nullable=False)
-    password = db.Column(db.String(200),nullable=False)
-
-    def __repr__(self):
-        return '<Task %r>' % self.id
 
 @app.route('/', methods=['POST', 'GET'])
 
@@ -47,15 +25,6 @@ def index():
         task_city = request.form['city']       
         task_phone = request.form['phone']       
         task_email = request.form['email']       
-        new_citizen = Citizen(name=task_name,address=task_address,city=task_city,phone=task_phone,email=task_email)
-
-        try:
-            db.session.add(new_citizen)
-            db.session.commit()
-            Info = Citizen.query.order_by(Citizen.date_created).all() 
-            return 'Sucessfully added to our DB'
-        except:
-            return 'Issue adding your task' 
 
     else:
         pass
@@ -65,21 +34,26 @@ def index():
 @app.route('/citizen', methods=['POST', 'GET'])
 def citizen():
     if request.method == 'POST':
-        task_name = request.form['name']
-        task_address = request.form['address']       
-        task_city = request.form['city']       
-        task_phone = request.form['phone']       
-        task_email = request.form['email']       
-        new_citizen = Citizen(name=task_name,address=task_address,city=task_city,phone=task_phone,email=task_email)
-
         try:
-            db.session.add(new_citizen)
-            db.session.commit()
-            Info = Citizen.query.order_by(Citizen.date_created).all() 
-            return 'Sucessfully added to our DB'
-        except:
-            return 'Issue adding your task' 
+            task_name = request.form['name']
+            task_address = request.form['address']       
+            task_city = request.form['city']       
+            task_phone = request.form['phone']       
+            task_email = request.form['email']       
+            print(task_name, task_address, task_phone, task_email, task_city)
+            con=sqlite3.connect("database.db")
+            cur=con.cursor()
+            cur.execute("insert into citizen(name,address,phone,email,city)values(?,?,?,?,?)",(task_name,task_address,task_phone,task_email,task_city))
+            con.commit()
+            print("success")
+            flash("Record Added  Successfully","success")
 
+        except:
+            print("error occured")
+            flash("Error in Insert Operation","danger")
+        finally:
+            return redirect(url_for("index"))
+            con.close()
     else:
         pass
 
@@ -89,18 +63,26 @@ def citizen():
 @app.route('/owner', methods=['POST', 'GET'])
 def owner():
     if request.method == 'POST':
-        task_name = request.form['name']
-        task_address = request.form['address']       
-        task_phone = request.form['phone']       
-        task_email = request.form['email']       
-        new_owner = Owner(name=task_name,address=task_address,phone=task_phone,email=task_email)
-
         try:
-            db.session.add(new_owner)
-            db.session.commit()
-            return 'Sucessfully added to our DB'
+            task_name = request.form['name']
+            task_address = request.form['address']       
+            task_phone = request.form['phone']       
+            task_email = request.form['email']       
+
+            con=sqlite3.connect("database.db")
+            cur=con.cursor()
+            cur.execute("insert into owner(name,address,phone,email)values(?,?,?,?)",(task_name,task_address,task_phone,task_email))
+
+            con.commit()
+            print("success")
+            flash("Record Added  Successfully","success")
+
         except:
-            return 'Issue adding your task' 
+            print("error occured")
+            flash("Error in Insert Operation","danger")
+        finally:
+            return redirect(url_for("index"))
+            con.close()
 
     else:
         pass
@@ -110,9 +92,7 @@ def owner():
 
 @app.route('/citizen_info', methods=['POST', 'GET'])
 def citizen_info():
-    db.session.commit()
-    Info = Citizen.query.order_by(Citizen.date_created).all() 
-    return render_template('citizen_info.html', Info=Info)
+    return render_template('citizen_info.html')
 
 @app.route('/agent', methods=['POST', 'GET'])
 def agent():
@@ -138,9 +118,7 @@ def hospital():
 
 @app.route('/owner_info', methods=['POST', 'GET'])
 def owner_info():
-    db.session.commit()
-    Info = Owner.query.order_by(Owner.date_created).all() 
-    return render_template('owner_info.html', Info=Info)
+    return render_template('owner_info.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
