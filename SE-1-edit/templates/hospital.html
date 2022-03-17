@@ -1,28 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{{url_for('static',filename='css/style2.css')}}">
-    <meta http-equiv="X-UA-Compatible" content="IE  =edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corona Management (Hospital_Login_Page)</title>
-</head>
+{%  extends 'base.html' %}
 
-<body>
-    <div class="navbar">
-        <ul>
-            <li><a href="{{ url_for('index')}}">HOME</a></li>
-            <li><a href="{{ url_for('citizen')}}">Citizen Registeration</a></li>
-            <li><a href="{{ url_for('owner')}}">Owner Registeration</a></li>
-            <li><a href="{{ url_for('agent')}}">Agent Login</a></li>
-            <li><a href="{{ url_for('hospital')}}">Hospital Login</a></li>
-        </ul>
-    </div>
+{% block head %}  <!-- For overiding template if need be -->
+
+<link rel="stylesheet" href="{{url_for('static',filename='css/style2.css')}}">
+<link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}"> <!-- Specific format for linking CSS -->
+<title>Hospital Login</title>
+
+{% endblock %}
+
+{% block body %}
+    <nav id="navbar">
+        <a class="navbar-brand" href=".{{ url_for('index')}}">CORONA ARCHIVE</a>
+        <div class="navbar-links">
+            <a class="navbar-link" href="{{ url_for('index')}}">HOME</a>
+            <a class="navbar-link" href="{{ url_for('citizen')}}">Citizen Registeration</a>
+            <!-- Agent has access to info about Citizens(In progress) -->
+            <a class="navbar-link" href="{{ url_for('owner')}}">Owner Registeration</a>
+            <!-- Agent has access to info about Owners(In progress) -->
+            <a class="navbar-link"  href="{{ url_for('agent')}}">Agent Login</a>
+            <a class="navbar-link" href="{{ url_for('hospital')}}">Hospital Login</a>
+      </div>
+      </nav>
     <div class="text">
-        <hr>
+        
         <h1>Hospital Login</h1>
-        <hr>
+        
     </div>
     <br><br>
         <div class="register_form">
@@ -42,7 +45,4 @@
             </form>
             <br><br>
         </div>
-
-</body>
-
-</html>
+        {% endblock %}

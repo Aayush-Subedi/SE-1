@@ -11,24 +11,30 @@ app = Flask(__name__)
 app.secret_key="123"
     
 def generate_qr_code(data, id):
+    # Initialize the qr code generator with configuration like version, shape and size
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=10,
         border=4,
     )
+    # Add Data to the qr code
     qr.add_data(data)
-    qr.make(fit=True)
-    print("Generating QR Code")
 
+    # Generate the qr code
+    qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-    print("1")
-    # app.config['UPLOAD_FOLDER'] = 'static/qr_codes'
-    # print("2")
-    # path = os.path.join(app.config['UPLOAD_FOLDER'], "owner"+str(id) + '.png')
-    # print(path)
-    # print("3")
-    # img.save("owner"+str(id) + '.png')
+
+    """
+    * IF you want to save the qr code as an image in the file system
+    app.config['UPLOAD_FOLDER'] = 'static/qr_codes'
+    print("2")
+    path = os.path.join(app.config['UPLOAD_FOLDER'], "owner"+str(id) + '.png')
+    print(path)
+    print("3")
+    img.save("owner"+str(id) + '.png')
+    """
+    # Return the qr code 
     return img
 
 # Database
@@ -83,26 +89,14 @@ def citizen():
             task_city = request.form['city']       
             task_phone = request.form['phone']       
             task_email = request.form['email'] # Taking values from input by user 
-            print(task_name, task_address, task_phone, task_email, task_city)
             con=sqlite3.connect("database.db")
             cur=con.cursor()
             cur.execute("insert into citizen(name,address,phone,email,city)values(?,?,?,?,?)",(task_name,task_address,task_phone,task_email,task_city)) # Registering user info into DB
             con.commit() # commiting the changes
 
-            qr_data = task_name + " " + task_address + " " + task_phone + " " + task_email # Generating QR code data
-            print("hellojk")
-            img = generate_qr_code(qr_data, cur.lastrowid) # Generatin QR
-            byte_io = BytesIO()
-            img.save(byte_io, 'PNG')
-            byte_io.seek(0)
-
-            return send_file(byte_io, mimetype='image/png')
-
-            print("success")
             flash("Record Added  Successfully","success")
 
         except:
-            print("error occured")
             flash("Error in Insert Operation","danger")
         finally:
             return redirect(url_for("index"))
@@ -127,16 +121,22 @@ def owner():
             cur.execute("insert into owner(name,address,phone,email)values(?,?,?,?)",(task_name,task_address,task_phone,task_email)) # inserting user info into DB
 
             con.commit()
-          
-            print("hellojk")
-            print("success")
-            flash("Record Added  Successfully","success")
+
+            # Data to fill the qr code
+            qr_data = task_name + " " + task_address + " " + task_phone + " " + task_email
+            # Call the function to generate the qr code
+            img = generate_qr_code(qr_data, cur.lastrowid)
+            # BytesIO object
+            byte_io = BytesIO()
+            img.save(byte_io, 'PNG')
+            byte_io.seek(0)
+
+            # Return the qr code as a png image
+            return send_file(byte_io, mimetype='image/png')
 
         except:
-            print("error occured")
             flash("Error in Insert Operation","danger")
         finally:
-            # return redirect(url_for("index"))
             con.close()
 
     else:
