@@ -15,17 +15,35 @@ class FlaskTestCase(unittest.TestCase):
     # Please note that this test cases depend on your computer as well as well. For example if I already have
     # a instructor named admin in my database that might not be true for you so KEEP THIS IN MIND.
 
-
+    # Checking home page
     def test_home_page(self):
         tester = app.test_client(self)
         response = tester.get('/', content_type="html/text")
         self.assertIn(b'Home', response.data)
+
+    # Checking Agent Page
+    def test_agent_page(self):
+        tester = app.test_client(self)
+        response = tester.get('/agent', content_type="html/text")
+        self.assertIn(b'Agent', response.data)
+
+    # The login is successful for an agent
+    def test_agent_login_successful(self):
+        tester = app.test_client(self)
+        response = tester.post('/agent', data=dict(username="agent", password="123"), follow_redirects=True)
+        self.assertIn(b'agent', response.data)
     
     # The login is not successful for incorrect credentials
     def test_agent_login_unsuccessful(self):
         tester = app.test_client(self)
         response = tester.post('/agent', data=dict(username="wrong1", password="wrong"), follow_redirects=True)
         self.assertIn(b'Wrong username or password', response.data)
+
+    # Checking Citizen Page
+    def test_citizen_page(self):
+        tester = app.test_client(self)
+        response = tester.get('/citizen', content_type="html/text")
+        self.assertIn(b'Citizen', response.data)  
 
     # Citizen Registration
     def test_citizen_registration(self):
@@ -34,6 +52,12 @@ class FlaskTestCase(unittest.TestCase):
         self.assertIn(b'Redirecting', response.data)
 
 
+    # Checking Owner Page
+    def test_owner_page(self):
+        tester = app.test_client(self)
+        response = tester.get('/owner', content_type="html/text")
+        self.assertIn(b'Owner', response.data) 
+
     # Owner Registration
     def test_owner_registration(self):
         tester = app.test_client(self)
@@ -41,17 +65,25 @@ class FlaskTestCase(unittest.TestCase):
         # Returns QR Code so using PNG
         self.assertIn(b'PNG', response.data)
 
+    # Checking Hospial Page
+    def test_hospital_page(self):
+        tester = app.test_client(self)
+        response = tester.get('/hospital', content_type="html/text")
+        self.assertIn(b'hospital', response.data) 
+
+
     # The login is not successful for incorrect credentials
     def test_hospital_login(self):
         tester = app.test_client(self)
         response = tester.post('/hospital', data=dict(username="wrong1", password="wrong"), follow_redirects=True)
         self.assertIn(b'Wrong username or password', response.data)
 
-
-    def test_owner_page(self):
+    # The login is successful for a hospital
+    def test_hospital_login_successful(self):
         tester = app.test_client(self)
-        response = tester.get('/owner', content_type="html/text")
-        self.assertIn(b'Owner', response.data)
+        response = tester.post('/hospital', data=dict(username="Foo", password="abc"), follow_redirects=True)
+        self.assertIn(b'hospital', response.data)
+
 
 if __name__=='__main__':
    unittest.main()

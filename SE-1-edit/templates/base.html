@@ -14,9 +14,15 @@
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="{{url_for('static',filename='css/footer.css')}}">
     {% block head %} {% endblock %}
 </head>
 <body>
+<div class="page_container">
+  <div id="content-wrap">
     {% block body %} {% endblock %}
+  </div>
+  <footer>Made with <span class="heart">&hearts;</span> by Corona Archive</footer> 
+</div>
 </body>
 </html>

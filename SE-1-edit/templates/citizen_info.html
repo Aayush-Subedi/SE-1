@@ -3,8 +3,8 @@
 
 {% block head %}  <!-- For overiding template if need be -->
 
-<link rel="stylesheet" href="{{url_for('static',filename='css/style2.css')}}">
-<link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}"> <!-- Specific format for linking CSS -->
+<link rel="stylesheet" href="{{url_for('static',filename='css/navbar.css')}}">
+<link rel="stylesheet" href="{{url_for('static',filename='css/pages.css')}}"> <!-- Specific format for linking CSS -->
 <title>Citizen Info</title>
 
 {% endblock %}
@@ -27,7 +27,7 @@
 {%  extends 'base.html' %}
 
 {% block head %}
-<title>Citizen Registeration</title>
+<title>Citizen_Info</title>
 {% endblock %}
 
 {% block body %}
